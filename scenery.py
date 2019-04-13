@@ -1,6 +1,6 @@
 # Allow pygame_sdl2 to be imported as pygame.
 import pygame_sdl2
-pygame_sdl2.import_as_pygame()
+#pygame_sdl2.import_as_pygame()
 import pygame
 
 import pymunk

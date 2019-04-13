@@ -1,6 +1,6 @@
 # Allow pygame_sdl2 to be imported as pygame.
 import pygame_sdl2
-pygame_sdl2.import_as_pygame()
+#pygame_sdl2.import_as_pygame()
 import pygame
 
 import sys
@@ -39,6 +39,7 @@ class Menu():
                
         for e in pygame.event.get():
             if e.type == pygame.MOUSEBUTTONUP:
+
                 if self.menu_name == "Main":
                     if self.menu_mouse_pos[0] == True:
                         return "Play"

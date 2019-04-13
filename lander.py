@@ -131,7 +131,7 @@ class LanderApp:
                     self.player.input(event["idx"],1)
                 elif event["type"]== self.ev.BTNUP:
                     self.player.input(event["idx"],0)
-                elif event["type"] == self.ev.QUIT or event.type == self.ev.ESCAPE:
+                elif event["type"] == self.ev.QUIT or event["type"] == self.ev.ESCAPE:
                     self._appRunning = False
                 elif event["type"] == self.ev.DRAW:
                     self._drawing = not self._drawing
