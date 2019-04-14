@@ -7,7 +7,7 @@ class GameWorld():
         self._world = (0,0,200,100) # in m
         self._pov = (self._world[2]/2, self._world[3]/2) 
         self._dist = 10.0 # in m
-        self._fov2 = (120. / 2.) * (math.pi / 180.)
+        self._fov2 = (120. / 2.) * (math.pi / 180.) # fov_rad is actually 2 * atan2(device_width_cm / 2, view_dist_cm)
         self._aspr = 10. / 16.
         self._w2 = math.tan(self._fov2) * self._dist
         self._h2 = self._aspr * self._w2
