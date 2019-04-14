@@ -72,8 +72,6 @@ class Scenery(Entity):
         #self.static_linesbottom = [pymunk.Segment(body, (0, 10), (s[0]/2, 20.0), 1.0),
         #                pymunk.Segment(body, (s[0]/2,20.0), (s[0],10), 10.0)]
         
-
-
         for line in self.static_lines:
             line.elasticity = 0.9
             line.friction = 0.9
