@@ -65,15 +65,20 @@ class LanderApp:
         ## sleep time theshold
         #self.space.sleep_time_threshold = 0.3
         # zoomfactor from physicsworld to pixelworld. 1 = show 100% of space.width on screen, 2=50%
-        self._zoom = 1
+        self._zoom = 2
         # Physicsworld size in m
-        self._space_size = (256, 160)
+        self._space_size = (512, 320)
         # Camera POV in space in m from left,down
-        self._space_pov = (128, 80)
+        self._space_pov = (256, 160)
+        
         # Scale factor from space to screen. 1 m in space = <scale> pixel in screen 
         #self._scale = Vec2d(self._screen_size).get_length() / Vec2d(self._space_size).get_length()
         self._scale = self._screen_size[0] / self._space_size[0]
         #print("SCALE: {0:f}".format(self._scale))
+        
+        # viewrect of current cam in space
+        self._space_viewrect = (0,0,0,0)
+        self._calc_space_viewrect()
 
         #
         # Initialize Game Options
@@ -109,7 +114,7 @@ class LanderApp:
 
         # Player
         #self.player = Player(self._space, Vec2d(self._space_size)/2)
-        self.player = Player(self, Vec2d(128,80))
+        self.player = Player(self, Vec2d(256,160))
         
         # Add Event Dispatcher for user input
         self.ev = EventDispatcher()               
@@ -171,6 +176,11 @@ class LanderApp:
                     self._is_running = False
                 elif event["type"] == self.ev.DRAW:
                     self._is_drawing = not self._is_drawing
+                elif event["type"] == self.ev.ZOOMINC:
+                    self.set_zoom(self.get_zoom()*1.05)
+                elif event["type"] == self.ev.ZOOMDEC:
+                    self.set_zoom(self.get_zoom()*0.95)
+                    
                 
 #                self._text = self._font.render("Finder DOWN: {0:d}, {1:f}, {2:f}".format(f, x, y), True, (255, 255, 255, 255))     
 #                self._text = self._font.render("Finder DOWN: {0:d}, {1:d}".format(pygame.display.Info().current_w, pygame.display.Info().current_h), True, (255, 255, 255, 255))   
@@ -219,15 +229,48 @@ class LanderApp:
         #print("s:{0:f}, z:{1:f}, p0:{2:f}, p1:{3:f}, wp0:{4:f}, wp1:{5:f}".format(world._scale, world._zoom, p[0], p[1], world._space_pov[0], world._space_pov[1]))
         return int(x), int(self._screen_size[1] - y)
         
-    def to_space(self):
-        pass
+    
+    #def to_space(self):
+    #    pass
 
-    def get_mouse_in_space(self, surface):
-        pass
-        """Get position of the mouse pointer in pymunk coordinates.
-        p = pygame.mouse.get_pos()
-        return from_pygame(p, surface)"""
+    #def get_mouse_in_space(self, surface):
+    #    pass
+    #    """Get position of the mouse pointer in pymunk coordinates.
+    #    p = pygame.mouse.get_pos()
+    #    return from_pygame(p, surface)"""
 
+    def set_space_pov(self, pos):
+        self._space_pov = pos
+        self._calc_space_viewrect()
+
+    def get__space_pov(self):
+        return self._space_pov
+
+    def _calc_space_viewrect(self):
+        w = self._space_size[0] / self._zoom
+        h = self._space_size[1] / self._zoom
+        x = self._space_pov[0] - 0.5 * w
+        y = self._space_pov[1] - 0.5 * h
+        self._space_viewrect = (x, y, w, h)
+
+    def get_space_viewrect(self):
+        return self._space_viewrect
+        
+    def get_screen_pov(self):
+        return self.to_screen(self._space_pov)
+
+    def set_zoom(self, zoom):
+        self._zoom = zoom
+        self._calc_space_viewrect()
+
+    def get_zoom(self):
+        return self._zoom
+
+    def set_scale(self, scale):
+        self._scale = scale
+
+    def get_scale(self):
+        return self._scale
 
 def main():
     app = LanderApp(0,0)

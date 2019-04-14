@@ -22,6 +22,8 @@ class EventDispatcher:
     DEBUGDRAW = 4
     VIDEORESIZE = 5
     VIDEOEXPOSE = 6
+    ZOOMINC = 7
+    ZOOMDEC = 8
     BTNDN = 10
     BTNUP = 20
      
@@ -79,15 +81,20 @@ class EventDispatcher:
                 elif event.type == pygame.KEYUP and event.key == pygame.K_UP:
                     results.append({"type": self.BTNUP, "idx": 2})
                 
+                
 
             if event.type == pygame.QUIT:
                 results.append({"type": self.QUIT})
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 results.append({"type": self.ESCAPE})
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_w:
-                results.append({"type": self.DRAW})
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_d:
-                results.append({"type": self.DEBUGDRAWDRAW})
+                results.append({"type": self.DRAW})
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                results.append({"type": self.ZOOMINC})
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_a:
+                results.append({"type": self.ZOOMDEC})            
+            #elif event.type == pygame.KEYDOWN and event.key == pygame.K_d:
+            #    results.append({"type": self.DEBUGDRAWDRAW})
             elif event.type == pygame.VIDEORESIZE:
                 results.append({"type": self.VIDEORESIZE, "w": event.w, "h": event.h})
             elif event.type == pygame.VIDEOEXPOSE:

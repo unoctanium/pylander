@@ -82,7 +82,27 @@ class Player(Entity):
 
 
     def draw(self, world):
-                
+        
+
+        p = self.shape.body.position
+        px, py = world.get__space_pov()
+        
+        if p.x > world._space_viewrect[0] + (world._space_viewrect[2] * 0.75):
+            px = p.x - world._space_viewrect[2] * 0.25
+            world.set_space_pov((px,py))
+        elif p.x < world._space_viewrect[0] + (world._space_viewrect[2] * 0.25):
+            px = p.x + world._space_viewrect[2] * 0.25
+            world.set_space_pov((px,py))
+            
+        if p.y > world._space_viewrect[1] + (world._space_viewrect[3] * 0.75):
+            py = p.y - world._space_viewrect[3] * 0.25
+            world.set_space_pov((px, py))
+        elif p.y < world._space_viewrect[1] + (world._space_viewrect[3] * 0.25):
+            py = p.y + world._space_viewrect[3] * 0.25
+            world.set_space_pov((px, py))
+
+
+
         ps = [world.to_screen(v.rotated(self.shape.body.angle) + self.shape.body.position) for v in self.shape.get_vertices()]
         ps += [ps[0]]
         
