@@ -13,34 +13,32 @@ from entity import Entity
 
 class Scenery(Entity):
     
-    body = None
+    #body = None
     #shape = None
     static_lines = None
-    
-    #def __init__(self):
-    #    Entity.__init__(self)
-            
-    def add(self, space):
+                
+    def __init__(self, world):
         """
         Create a Scenery.
         :return:
         """
-        w, h = pygame.display.Info().current_w, pygame.display.Info().current_h
-        
-        self.body = space.static_body
-        self.static_lines = [pymunk.Segment(self.body, (0, 100), (w/2, 200.0), 0.0),
-                        pymunk.Segment(self.body, (w/2,200.0), (w,0.), 0.0)]
+        Entity.__init__(self)
+
+        s = world._space_size        
+        body = world._space.static_body
+        self.static_lines = [pymunk.Segment(body, (0, 10), (s[0]/2, 20.0), 0.0),
+                        pymunk.Segment(body, (s[0]/2,20.0), (s[0],10), 0.0)]
         for line in self.static_lines:
             line.elasticity = 0.9
             line.friction = 0.9
-        space.add(self.static_lines)
+        world._space.add(self.static_lines)
                   
     def update(self):
         pass        
 
-    def draw(self, screen):
+    def draw(self, world):
         
         for line in self.static_lines:
-            p1 = pymunk.pygame_util.to_pygame(line._get_a(), screen)
-            p2 = pymunk.pygame_util.to_pygame(line._get_b(), screen)
-            pygame.draw.aalines(screen, pygame.Color(255,255,255), False, [p1,p2])
+            p1 = world.to_screen(line._get_a())
+            p2 = world.to_screen(line._get_b())
+            pygame.draw.aalines(world._screen, pygame.Color(255,255,255), False, [p1,p2])

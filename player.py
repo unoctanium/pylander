@@ -14,33 +14,30 @@ from entity import Entity
 
 class Player(Entity):
     
-    body = None
+    #body = None
     shape = None
     #space = None
     btnstate = [0,0,0]
-    
-    #def __init__(self):
-    #    Entity.__init__(self)
-        
-        
-    def add(self, space, pos):
+            
+    def __init__(self, world, pos):
         """
         Create a player.
         :return:
         """
         #vs = [(0,0),(0,-45),(25,-45)]
         #shovel_s = pymunk.Poly(chassi_b, vs, transform = pymunk.Transform(tx=85))
-
+        Entity.__init__(self)
+ 
         mass = 300
-        size = (50,50)
+        size = (5,5)
         moment = pymunk.moment_for_box(mass, size)
-        hull_b = self.body = pymunk.Body(mass, moment)
+        self.body = pymunk.Body(mass, moment)
         self.shape = pymunk.Poly.create_box(self.body, size)
         self.shape.friction = 0.9
         
         self.shape.elasticity = 0.9
         self.body.position = pos
-        space.add(self.body, self.shape)
+        world._space.add(self.body, self.shape)
         #wheel2_s.color = wheel_color
       
         """
@@ -75,33 +72,32 @@ class Player(Entity):
     def update(self):
         
         if self.btnstate[2] > 0 or (self.btnstate[0] > 0 and self.btnstate[1] > 0):
-            self.body.apply_force_at_local_point((0,150000),(0,0))
+            self.body.apply_force_at_local_point((0,15000),(0,0))
         elif self.btnstate[0] > 0:
             #self.body.apply_force_at_local_point((-100000,0),(0,0))
-            self.body.apply_force_at_local_point((0,20000),(20,-20))
+            self.body.apply_force_at_local_point((0,2000),(2,-2))
         elif self.btnstate[1] > 0:
             #self.body.apply_force_at_local_point((100000,0),(0,0))                                   
-            self.body.apply_force_at_local_point((0,20000),(-20,-20))                                   
+            self.body.apply_force_at_local_point((0,2000),(-2,-2))                                   
 
 
-
-
-    def draw(self, screen):
+    def draw(self, world):
+                
+        ps = [world.to_screen(v.rotated(self.shape.body.angle) + self.shape.body.position) for v in self.shape.get_vertices()]
+        ps += [ps[0]]
         
-        ps = [pymunk.pygame_util.to_pygame(v.rotated(self.shape.body.angle) + self.shape.body.position, screen) for v in self.shape.get_vertices()]
-        ps += [ps[0]]        
-        pygame.draw.polygon(screen, pygame.Color(0,255,0), ps)
-        pygame.draw.lines(screen, pygame.Color(255,0,0), False, ps, 2)
+        pygame.draw.polygon(world._screen, pygame.Color(0,255,0), ps)
+        #pygame.draw.lines(world._screen, pygame.Color(255,0,0), False, ps, 2)
         
-        r = 200
-        v = self.body.position
-        rot = self.body.rotation_vector
-        p = self.transform_physic_screen(v)
-        p2 = Vec2d(rot.x, -rot.y) * r 
-        p2.rotate(math.pi / -2)
-        #screen.set_clip((0,0,800,640))
-        pygame.draw.line(screen, pygame.Color(255,0,0), p, p+p2)
-        #screen.set_clip(None)
+        l = 10 # m
+        v1 = self.shape.body.position
+        v2 = self.shape.body.rotation_vector * l
+        v2.rotate(math.pi * -0.5) # neg = clockwise
+        v2 += v1
+        v1 = world.to_screen(v1)
+        v2 = world.to_screen(v2)
+        pygame.draw.line(world._screen, pygame.Color(255,0,0), v1, v2)
+        
         
     def input(self, btn, state):
         self.btnstate[btn] = state

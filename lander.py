@@ -1,40 +1,45 @@
 # Allow pygame_sdl2 to be imported as pygame.
 import pygame_sdl2
 pygame_sdl2.import_as_pygame()
-
 import pygame
-#import os
-
+# Import pymunc physics engine
 import pymunk
 from pymunk import Vec2d
 import pymunk.pygame_util
-
+# Import other libs
+#import os
+# Import own classes
 from eventdispatcher import EventDispatcher
 from entity import Entity
 from player import Player
 from scenery import Scenery
 from menu import Menu
 
-
 class LanderApp:
     def __init__(self, screen_w, screen_h):
         
-        # Space = GameWorld
-        self._space = pymunk.Space()
-        # Gravity in m / s^2
-        self._space.gravity = (0.0, -150.0)
-        # Phyicsworld damoing in 1-x %
-        self._space.damping = 0.8
-        ## sleep time theshold
-        #self.space.sleep_time_threshold = 0.3
-        # zoomfactor from physicsworld to pixelworld
-        self._zoom = 1.0 
-        # Physicsworld size in m
-        self._space_size = (200.0, 100.0)
-        # Camera POV in space in m from left,down
-        self._space_pov = (100.0, 50.0)
-        # Scale factor from space to screen. 1 m in space = <scale> pixel in screen 
-        self._scale = 1.0
+        #
+        # Initialize Screenworld
+        #
+
+        # pygame = Screenworld
+        pygame.init()
+
+        # DEBUG SCREEN_INFO
+        print("INFO")
+        print(pygame.display.Info())
+        print("MODES")
+        print(pygame.display.list_modes(depth=0) )
+        print("FULLSCREEN_MODES")
+        print(pygame.display.list_modes(depth=0, flags=pygame.FULLSCREEN))
+
+        # set display mode and calculate _screen_size
+        if screen_w==0 and screen_h==0:
+            self._screen_size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        else:
+            self._screen_size = (screen_w, screen_h)
+        #self._screen = pygame.display.set_mode(self._screen_size, flags=pygame.FULLSCREEN)
+        self._screen = pygame.display.set_mode(self._screen_size)        
 
         # Frame rate
         self._fps = 60.0
@@ -44,60 +49,70 @@ class LanderApp:
         self._dt = 1.0/self._fps/self._physics_steps_per_frame       
         #self._dt = 1. / self._fps 
 
-        # pygame = Screenworld
-        pygame.init()
-
-        print("INFO")
-        print(pygame.display.Info())
-        print("FULLSCREEN_MODES")
-        print(pygame.display.list_modes(depth=0, flags=pygame.FULLSCREEN))
-        print("MODES")
-        print(pygame.display.list_modes(depth=0, flags=pygame.FULLSCREEN))
-
-        # set display mode and calculate _screen_size
-        if screen_w==0 and screen_h==0:
-            self._w, self._h = pygame.display.Info().current_w, pygame.display.Info().current_h
-        else:
-            self._w, self._h = screen_w,screen_h
-        #self._screen = pygame.display.set_mode((self._w, self._h), flags=pygame.FULLSCREEN)
-        self._screen = pygame.display.set_mode((self._w, self._h))        
-
         # pygame frame clock
         self._clock = pygame.time.Clock()
 
+        #
+        # Initialize Game World
+        #
 
+        # Space = GameWorld
+        self._space = pymunk.Space()
+        # Gravity in m / s^2
+        self._space.gravity = (0.0, -9.81)
+        # Phyicsworld damoing in 1-x %
+        self._space.damping = 0.8
+        ## sleep time theshold
+        #self.space.sleep_time_threshold = 0.3
+        # zoomfactor from physicsworld to pixelworld. 1 = show 100% of space.width on screen, 2=50%
+        self._zoom = 1
+        # Physicsworld size in m
+        self._space_size = (256, 160)
+        # Camera POV in space in m from left,down
+        self._space_pov = (128, 80)
+        # Scale factor from space to screen. 1 m in space = <scale> pixel in screen 
+        #self._scale = Vec2d(self._screen_size).get_length() / Vec2d(self._space_size).get_length()
+        self._scale = self._screen_size[0] / self._space_size[0]
+        #print("SCALE: {0:f}".format(self._scale))
 
+        #
+        # Initialize Game Options
+        #
 
+        # Drawing Option. Setting _is_is_drawing to False enables headless mode
+        self._is_drawing = True
+
+        # Use pymunk debug draw. Note: I can't use it because I implement a scroller, scaler and zoom
+        # So I use my own drawing routines in the Entity-Subclasses
         #self._draw_options = pymunk.pygame_util.DrawOptions(self._screen)
-        self._drawing = True
 
-        # Static barrier walls (lines) that the balls bounce off of
-        self.scenery = Scenery()
-        self.scenery.add(self._space)
+        # Execution control 
+        self._is_running = True
+        self._is_paused = True
+        self._show_menu = True
+
+        #
+        # Create Game Entities
+        #
                 
-        # HUD
+        # GUI
         self._font = pygame.font.SysFont("DejaVuSans", 24)
         self._text = self._font.render("Touch the screen.", True, (255, 255, 255, 255))
         self._text_w, self._text_h = self._text.get_size()
         self._add_hud()
 
-        # Balls that exist in the world
-        #self._balls = []
-    
-        # Player
-        self.player = Player()
-        self.player.add(self._space, Vec2d(self._w/2, self._h/2))
-
-        # Add Event Dispatcher for user input
-        self.ev = EventDispatcher()
-                        
         # Menu
         self.menu = Menu()
-               
-        # Execution control 
-        self._appRunning = True
-        self._gameRunning = False
-        self._isMenu = True
+
+        # Static Scenery
+        self.scenery = Scenery(self)
+
+        # Player
+        #self.player = Player(self._space, Vec2d(self._space_size)/2)
+        self.player = Player(self, Vec2d(128,80))
+        
+        # Add Event Dispatcher for user input
+        self.ev = EventDispatcher()               
      
             
     def run(self):
@@ -106,12 +121,12 @@ class LanderApp:
         :return: None
         """
         # Main loop             
-        while self._appRunning:
+        while self._is_running:
            
             self._process_events()
             self._clear_screen()
                     
-            if self._gameRunning:
+            if not self._is_paused:
                 ## Progress time forward
                 #self._space.step(self._dt)
                 for x in range(self._physics_steps_per_frame):
@@ -137,25 +152,25 @@ class LanderApp:
         :return: None
         """
         # Handle menu
-        if self._isMenu:
+        if self._show_menu:
             menu_choice = self.menu.update(self.menu, self)
             if menu_choice == "Play":
-                self._isMenu = False
-                self._gameRunning = True
+                self._show_menu = False
+                self._is_paused = False
 			
 			#if menu_choice == "Options":
 			#	self.option_menu =
 			
-        if self._gameRunning:
+        if not self._is_paused:
             for event in self.ev.get():
                 if event["type"] == self.ev.BTNDN:
                     self.player.input(event["idx"],1)
                 elif event["type"]== self.ev.BTNUP:
                     self.player.input(event["idx"],0)
                 elif event["type"] == self.ev.QUIT or event["type"] == self.ev.ESCAPE:
-                    self._appRunning = False
+                    self._is_running = False
                 elif event["type"] == self.ev.DRAW:
-                    self._drawing = not self._drawing
+                    self._is_drawing = not self._is_drawing
                 
 #                self._text = self._font.render("Finder DOWN: {0:d}, {1:f}, {2:f}".format(f, x, y), True, (255, 255, 255, 255))     
 #                self._text = self._font.render("Finder DOWN: {0:d}, {1:d}".format(pygame.display.Info().current_w, pygame.display.Info().current_h), True, (255, 255, 255, 255))   
@@ -174,14 +189,14 @@ class LanderApp:
         Draw the objects.
         :return: None
         """
-        if self._isMenu:
+        if self._show_menu:
             self.menu.draw(self._screen)
             
-        elif self._gameRunning:
+        elif not self._is_paused:
             ### Draw space
             #self._space.debug_draw(self._draw_options)
-            self.scenery.draw(self._screen)
-            self.player.draw(self._screen)
+            self.scenery.draw(self)
+            self.player.draw(self)
     
         
     def _add_hud(self):
@@ -189,7 +204,29 @@ class LanderApp:
             
     def _update_hud(self):
         #fps_str = "fps: " + str(self._clock.get_fps())
-        self._screen.blit(self._text, (self._w / 2 - self._text_w / 2, self._h / 2 - self._text_h / 2))
+        self._screen.blit(self._text, (self._screen_size[0]/2 - self._text_w / 2, self._screen_size[1]/2 - self._text_h / 2))
+
+    def to_screen(self, p):
+        z = self._scale * self._zoom
+        fx = 0.5 * self._space_size[0] / self._zoom
+        fy = 0.5 * self._space_size[1] / self._zoom
+
+        #x = (p[0] - self._space_pov[0]) * z + self._screen_size[0]/2
+        x = (p[0] - self._space_pov[0] + fx) * z 
+        #y = (p[1] - self._space_pov[1]) * z + self._screen_size[1]/2
+        y = (p[1] - self._space_pov[1] + fy) * z
+        
+        #print("s:{0:f}, z:{1:f}, p0:{2:f}, p1:{3:f}, wp0:{4:f}, wp1:{5:f}".format(world._scale, world._zoom, p[0], p[1], world._space_pov[0], world._space_pov[1]))
+        return int(x), int(self._screen_size[1] - y)
+        
+    def to_space(self):
+        pass
+
+    def get_mouse_in_space(self, surface):
+        pass
+        """Get position of the mouse pointer in pymunk coordinates.
+        p = pygame.mouse.get_pos()
+        return from_pygame(p, surface)"""
 
 
 def main():
