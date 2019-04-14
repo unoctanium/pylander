@@ -17,15 +17,25 @@ from menu import Menu
 
 
 class LanderApp:
-    def __init__(self, w, h):
+    def __init__(self, screen_w, screen_h):
         
-        # Space
+        # Space = GameWorld
         self._space = pymunk.Space()
+        # Gravity in m / s^2
         self._space.gravity = (0.0, -150.0)
+        # Phyicsworld damoing in 1-x %
         self._space.damping = 0.8
+        ## sleep time theshold
         #self.space.sleep_time_threshold = 0.3
+        # zoomfactor from physicsworld to pixelworld
+        self._zoom = 1.0 
+        # Physicsworld size in m
+        self._space_size = (200.0, 100.0)
+        # Camera POV in space in m from left,down
+        self._space_pov = (100.0, 50.0)
+        # Scale factor from space to screen. 1 m in space = <scale> pixel in screen 
+        self._scale = 1.0
 
-        # Physics
         # Frame rate
         self._fps = 60.0
         # Number of physics steps per screen frame
@@ -34,18 +44,29 @@ class LanderApp:
         self._dt = 1.0/self._fps/self._physics_steps_per_frame       
         #self._dt = 1. / self._fps 
 
-        # pygame
+        # pygame = Screenworld
         pygame.init()
-        
-        if w==0 and h==0:
-            self._screen = pygame.display.set_mode(flags=pygame.FULLSCREEN)
+
+        print("INFO")
+        print(pygame.display.Info())
+        print("FULLSCREEN_MODES")
+        print(pygame.display.list_modes(depth=0, flags=pygame.FULLSCREEN))
+        print("MODES")
+        print(pygame.display.list_modes(depth=0, flags=pygame.FULLSCREEN))
+
+        # set display mode and calculate _screen_size
+        if screen_w==0 and screen_h==0:
             self._w, self._h = pygame.display.Info().current_w, pygame.display.Info().current_h
         else:
-            self._w, self._h = w,h
-            self._screen = pygame.display.set_mode((self._w, self._h))
-        
-        
+            self._w, self._h = screen_w,screen_h
+        #self._screen = pygame.display.set_mode((self._w, self._h), flags=pygame.FULLSCREEN)
+        self._screen = pygame.display.set_mode((self._w, self._h))        
+
+        # pygame frame clock
         self._clock = pygame.time.Clock()
+
+
+
 
         #self._draw_options = pymunk.pygame_util.DrawOptions(self._screen)
         self._drawing = True

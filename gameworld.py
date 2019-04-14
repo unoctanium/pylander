@@ -2,7 +2,13 @@
 import math
 
 class GameWorld():
-    
+
+    pass
+
+
+
+
+    """
     def __init__(self):
         self._world = (0,0,200,100) # in m
         self._pov = (self._world[2]/2, self._world[3]/2) 
@@ -37,7 +43,7 @@ class GameWorld():
 
     def get_view_from_pxpov(self, pov):
         pass
-    
+    """
 
             
     
